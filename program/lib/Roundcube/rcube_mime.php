@@ -300,7 +300,7 @@ class rcube_mime
         $str = preg_replace('/\r?\n(\s|\t)?/', ' ', $str);
 
         // extract list items, remove comments
-        $str = self::explode_header_string(',;', $str, true);
+        $str = self::explode_header_string(',;', $str);
         $result = array();
 
         // simplified regexp, supporting quoted local part
@@ -319,6 +319,10 @@ class rcube_mime
                 $address = $m[1];
                 $name    = '';
             }
+            else if (preg_match('/^('.$email_rx.')\s+(\(.+\))$/', $val, $m)) {
+                $address = $m[1];
+                $name    = $m[4];
+            }
             // special case (#1489092)
             else if (preg_match('/(\s*<MAILER-DAEMON>)$/', $val, $m)) {
                 $address = 'MAILER-DAEMON';
@@ -333,6 +337,10 @@ class rcube_mime
 
             // dequote and/or decode name
             if ($name) {
+                if ($name[0] == '(' && $name[strlen($name)-1] == ')') {
+                    $name = substr($name, 1, -1);
+                    $name = stripslashes($name);
+                }
                 if ($name[0] == '"' && $name[strlen($name)-1] == '"') {
                     $name = substr($name, 1, -1);
                     $name = stripslashes($name);
